@@ -381,4 +381,26 @@ mod tests {
             }
         }
     }
+
+    #[test]
+    fn message_encode() {
+        let mut codec = TelnetCodec::new(4096);
+
+        let mut output = BytesMut::new();
+        match codec.encode(
+            TelnetEvent::Message(String::from("Hello world!")),
+            &mut output) {
+            Ok(()) => {
+                assert_eq!(
+                    output,
+                    BytesMut::from(vec![
+                        0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0x77, 0x6f, 0x72, 0x6c, 0x64, 0x21, 0x0a,
+                    ]),
+                );
+            },
+            Err(_) => {
+                panic!("Invalid encoding sequence");
+            }
+        }
+    }
 }
