@@ -42,7 +42,7 @@ mod tests {
     #[test]
     fn finished_message() {
         let mut codec = TelnetCodec::new(4096);
-        let mut bytes = BytesMut::from(b"Hello world\n".to_vec());
+        let mut bytes = BytesMut::from(b"Hello world\r\n".to_vec());
         let result = consume(&mut codec, &mut bytes);
 
         assert_eq!(
@@ -58,7 +58,7 @@ mod tests {
         let mut codec = TelnetCodec::new(4096);
         let mut bytes = BytesMut::from(vec![
             IAC, IAC, b'a', b'b', b'c',
-            b'\n',
+            b'\r', b'\n',
         ]);
 
         let result = consume(&mut codec, &mut bytes);
@@ -161,7 +161,7 @@ mod tests {
             IAC, WILL, NEGOTIATE_ABOUT_WINDOW_SIZE,
             b'c',
             IAC, WONT, BYTE_MACRO,
-            b'\n',
+            b'\r', b'\n',
         ]);
         let result = consume(&mut codec, &mut bytes);
 
@@ -388,13 +388,13 @@ mod tests {
 
         let mut output = BytesMut::new();
         match codec.encode(
-            TelnetEvent::Message(String::from("Hello world!")),
+            TelnetEvent::Message(String::from("Hello world!\r\n")),
             &mut output) {
             Ok(()) => {
                 assert_eq!(
                     output,
                     BytesMut::from(vec![
-                        0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0x77, 0x6f, 0x72, 0x6c, 0x64, 0x21, 0x0a,
+                        0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0x77, 0x6f, 0x72, 0x6c, 0x64, 0x21, 0x0d, 0x0a,
                     ]),
                 );
             },
@@ -403,4 +403,105 @@ mod tests {
             }
         }
     }
+
+    #[test]
+    fn message_encode_cr() {
+        let mut codec = TelnetCodec::new(4096);
+
+        let mut output = BytesMut::new();
+        match codec.encode(
+            TelnetEvent::Message(String::from("Hello world!\r")),
+            &mut output) {
+            Ok(()) => {
+                assert_eq!(
+                    output,
+                    BytesMut::from(vec![
+                        0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0x77, 0x6f, 0x72, 0x6c, 0x64, 0x21, 0x0d, 0x0a,
+                    ]),
+                );
+            },
+            Err(_) => {
+                panic!("Invalid encoding sequence");
+            }
+        }
+    }
+
+    #[test]
+    fn message_encode_add_newline() {
+        let mut codec = TelnetCodec::new(4096);
+
+        let mut output = BytesMut::new();
+        match codec.encode(
+            TelnetEvent::Message(String::from("Hello world!")),
+            &mut output) {
+            Ok(()) => {
+                assert_eq!(
+                    output,
+                    BytesMut::from(vec![
+                        0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0x77, 0x6f, 0x72, 0x6c, 0x64, 0x21, 0x0d, 0x0a,
+                    ]),
+                );
+            },
+            Err(_) => {
+                panic!("Invalid encoding sequence");
+            }
+        }
+    }
+
+    #[test]
+    fn message_decode_sga() {
+        let mut codec = TelnetCodec::new(4096);
+        let mut input = BytesMut::from(vec![
+            b'a',
+            b'b',
+            b'c',
+            IAC, IAC,
+        ]);
+
+        codec.sga = true;
+        let result = consume(&mut codec, &mut input);
+        assert_eq!(
+            result,
+            vec![
+                Ok(Some(TelnetEvent::Character(b'a'))),
+                Ok(Some(TelnetEvent::Character(b'b'))),
+                Ok(Some(TelnetEvent::Character(b'c'))),
+                Ok(Some(TelnetEvent::Character(IAC))),
+            ],
+        );
+    }
+
+    #[test]
+    fn message_decode_sga_with_buffer() {
+        let mut codec = TelnetCodec::new(4096);
+        let mut input = BytesMut::from(
+            Vec::from(vec![0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0x77, 0x6f, 0x72, 0x6c, 0x64, 0x21])
+        );
+
+        let result = consume(&mut codec, &mut input);
+        assert_eq!(result, Vec::new());
+
+        let mut second_input = BytesMut::from(vec![
+            b'a',
+            b'b',
+            b'c',
+            IAC, IAC,
+        ]);
+
+        codec.sga = true;
+        let result = consume(&mut codec, &mut second_input);
+
+        assert_eq!(
+            result,
+            vec![
+                Ok(Some(TelnetEvent::Message(String::from("Hello world!")))),
+                Ok(Some(TelnetEvent::Character(b'a'))),
+                Ok(Some(TelnetEvent::Character(b'b'))),
+                Ok(Some(TelnetEvent::Character(b'c'))),
+                Ok(Some(TelnetEvent::Character(IAC))),
+            ],
+        );
+    }
+
+
 }

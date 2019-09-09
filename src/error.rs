@@ -1,6 +1,7 @@
 #[derive(Debug)]
 pub enum TelnetError {
   InvalidSubnegotiationSequence,
+  InvalidIACSequence,
   IO(std::io::Error),
 }
 

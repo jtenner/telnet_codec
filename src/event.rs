@@ -9,5 +9,8 @@ pub enum TelnetEvent {
   Wont(TelnetOption),
   Subnegotiation(SubnegotiationType),
   Message(String),
+  Character(u8),
+  EraseCharacter,
+  EraseLine,
   Nop,
 }

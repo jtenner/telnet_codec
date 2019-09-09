@@ -8,6 +8,7 @@ use crate::error::*;
 use std::mem;
 
 pub struct TelnetCodec {
+  pub sga: bool,
   max_buffer_length: usize,
   buffer: Vec<u8>,
 }
@@ -15,6 +16,7 @@ pub struct TelnetCodec {
 impl TelnetCodec {
   pub fn new(max_buffer_length: usize) -> TelnetCodec {
     TelnetCodec {
+      sga: false,
       max_buffer_length,
       buffer: Vec::new(),
     }
@@ -120,6 +122,17 @@ impl Encoder for TelnetCodec {
               buf.put(*x);
             }
           }
+
+          if !buf.ends_with(b"\r\n") {
+            if buf.ends_with(b"\r") {
+              buf.reserve(1);
+              buf.put(b'\n');
+            } else {
+              buf.reserve(2);
+              buf.put(b'\r');
+              buf.put(b'\n');
+            }
+          }
         }
         _ => {
           // Nops can happen, ignore them
@@ -140,7 +153,55 @@ impl Decoder for TelnetCodec {
     let mut buffer_len = self.buffer.len();
     let max_buffer_length = self.max_buffer_length;
 
+    if self.sga {
+      if self.buffer.len() > 0 {
+        // truncate the buffer into a message and emit it
+        let buffer = mem::replace(&mut self.buffer, Vec::new());
+        let result = String::from_utf8_lossy(&buffer[..]);
+        return Ok(Some(TelnetEvent::Message(result.to_string())));
+      }
+    }
+
     if len == 0 { return Ok(None); }
+
+    if self.sga {
+      let mut byte = src[0];
+
+      match byte {
+        IAC => {
+          // check the length first
+          if 1 >= len {
+            return Ok(None);
+          }
+
+          // get the next byte
+          byte = src[x + 1];
+
+          match byte {
+            IAC => {
+              src.split_to(2);
+              return Ok(Some(TelnetEvent::Character(IAC)));
+            },
+            ERASE_CHARACTER => {
+              src.split_to(2);
+              return Ok(Some(TelnetEvent::EraseCharacter));
+            },
+            ERASE_LINE => {
+              src.split_to(2);
+              return Ok(Some(TelnetEvent::EraseLine));
+            },
+            _ => {
+              src.split_to(2);
+              return Err(TelnetError::InvalidIACSequence);
+            }
+          }
+        },
+        _ => {
+          src.split_to(1);
+          return Ok(Some(TelnetEvent::Character(byte)));
+        }
+      }
+    }
 
     loop {
       if x >= len { return Ok(None); }
@@ -148,7 +209,6 @@ impl Decoder for TelnetCodec {
       match byte {
         // parse the IAC
         IAC => {
-
           // check the length first
           if x + 1 >= len {
             return Ok(None);
@@ -300,11 +360,18 @@ impl Decoder for TelnetCodec {
           // it could have ended with crlf
           if buffer.ends_with(&[b'\r']) {
             buffer.pop();
-          }
-          src.split_to(x + 1);
+            src.split_to(x + 1);
 
-          let result = String::from_utf8_lossy(&buffer[..]);
-          return Ok(Some(TelnetEvent::Message(result.to_string())));
+            let result = String::from_utf8_lossy(&buffer[..]);
+            return Ok(Some(TelnetEvent::Message(result.to_string())));
+          }
+
+          // default byte action:
+          // if the buffer has reached max buffer length, drop the byte
+          if buffer_len < max_buffer_length {
+            self.buffer.push(byte);
+            buffer_len += 1;
+          }
         },
         _ => {
           // default byte action:
