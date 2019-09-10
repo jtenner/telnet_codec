@@ -45,6 +45,7 @@ mod tests {
         let mut bytes = BytesMut::from(b"Hello world\r\n".to_vec());
         let result = consume(&mut codec, &mut bytes);
 
+        assert_eq!(bytes.len(), 0_usize);
         assert_eq!(
             result,
             vec![
@@ -60,8 +61,9 @@ mod tests {
             IAC, IAC, b'a', b'b', b'c',
             b'\r', b'\n',
         ]);
-
         let result = consume(&mut codec, &mut bytes);
+
+        assert_eq!(bytes.len(), 0_usize);
         assert_eq!(
             result,
             vec![
@@ -76,6 +78,7 @@ mod tests {
         let mut bytes = BytesMut::from(b"Hello world\r\n".to_vec());
         let result = consume(&mut codec, &mut bytes);
 
+        assert_eq!(bytes.len(), 0_usize);
         assert_eq!(
             result,
             vec![
@@ -91,6 +94,7 @@ mod tests {
             let mut bytes = BytesMut::from(vec![IAC, DO, x]);
             let result = consume(&mut codec, &mut bytes);
 
+            assert_eq!(bytes.len(), 0_usize);
             assert_eq!(
                 result,
                 vec![
@@ -106,8 +110,9 @@ mod tests {
 
         for x in 0..=255 {
             let mut bytes = BytesMut::from(vec![IAC, DONT, x]);
-
             let result = consume(&mut codec, &mut bytes);
+
+            assert_eq!(bytes.len(), 0_usize);
             assert_eq!(
                 result,
                 vec![
@@ -125,6 +130,7 @@ mod tests {
             let mut bytes = BytesMut::from(vec![IAC, WILL, x]);
             let result = consume(&mut codec, &mut bytes);
 
+            assert_eq!(bytes.len(), 0_usize);
             assert_eq!(
                 result,
                 vec![
@@ -142,6 +148,7 @@ mod tests {
             let mut bytes = BytesMut::from(vec![IAC, WONT, x]);
             let result = consume(&mut codec, &mut bytes);
 
+            assert_eq!(bytes.len(), 0_usize);
             assert_eq!(
                 result,
                 vec![
@@ -165,6 +172,7 @@ mod tests {
         ]);
         let result = consume(&mut codec, &mut bytes);
 
+        assert_eq!(bytes.len(), 0_usize);
         assert_eq!(
             result,
             vec![
@@ -184,8 +192,9 @@ mod tests {
             0, 100, 0, 120,
             IAC, SUBNEGOTIATION_END,
         ]);
-
         let result = consume(&mut codec, &mut bytes);
+
+        assert_eq!(bytes.len(), 0_usize);
         assert_eq!(
             result,
             vec![
@@ -202,8 +211,9 @@ mod tests {
             0, 100, 0, 120, 0,
             IAC, SUBNEGOTIATION_END,
         ]);
-
         let result = consume(&mut codec, &mut bytes);
+
+        assert_eq!(bytes.len(), 0_usize);
         assert_eq!(
             result,
             vec![
@@ -220,8 +230,9 @@ mod tests {
             1, 2, 3, 4, 5,
             IAC, SUBNEGOTIATION_END,
         ]);
-
         let result = consume(&mut codec, &mut bytes);
+
+        assert_eq!(bytes.len(), 0_usize);
         assert_eq!(
             result,
             vec![
@@ -241,8 +252,9 @@ mod tests {
             1, 2, 3, 4, 5, IAC, NEGOTIATE_ABOUT_WINDOW_SIZE,
             IAC, SUBNEGOTIATION_END,
         ]);
-
         let result = consume(&mut codec, &mut bytes);
+
+        assert_eq!(bytes.len(), 0_usize);
         assert_eq!(
             result,
             vec![
@@ -253,199 +265,153 @@ mod tests {
 
     #[test]
     fn do_encode() {
-        let mut codec = TelnetCodec::new(4096);
-
         for x in 0..=255 {
+            let mut codec = TelnetCodec::new(4096);
             let mut output = BytesMut::new();
-            match codec.encode(TelnetEvent::Do(TelnetOption::from(x)), &mut output) {
-                Ok(()) => {
-                    assert_eq!(
-                        output,
-                        BytesMut::from(vec![IAC, DO, x]),
-                    );
-                },
-                Err(_) => {
-                    panic!("Invalid encoding sequence");
-                }
-            }
+            let message = TelnetEvent::Do(TelnetOption::from(x));
+
+            codec.encode(message, &mut output).expect("Invalid encoding sequence");
+
+            assert_eq!(
+                output,
+                BytesMut::from(vec![IAC, DO, x]),
+            );
         }
     }
 
     #[test]
     fn dont_encode() {
-        let mut codec = TelnetCodec::new(4096);
-
         for x in 0..=255 {
+            let mut codec = TelnetCodec::new(4096);
             let mut output = BytesMut::new();
-            match codec.encode(TelnetEvent::Dont(TelnetOption::from(x)), &mut output) {
-                Ok(()) => {
-                    assert_eq!(
-                        output,
-                        BytesMut::from(vec![IAC, DONT, x]),
-                    );
-                },
-                Err(_) => {
-                    panic!("Invalid encoding sequence");
-                }
-            }
+            let message = TelnetEvent::Dont(TelnetOption::from(x));
+
+            codec.encode(message, &mut output).expect("Invalid encoding sequence");
+
+            assert_eq!(
+                output,
+                BytesMut::from(vec![IAC, DONT, x]),
+            );
         }
     }
 
     #[test]
     fn will_encode() {
-        let mut codec = TelnetCodec::new(4096);
-
         for x in 0..=255 {
+            let mut codec = TelnetCodec::new(4096);
             let mut output = BytesMut::new();
-            match codec.encode(TelnetEvent::Will(TelnetOption::from(x)), &mut output) {
-                Ok(()) => {
-                    assert_eq!(
-                        output,
-                        BytesMut::from(vec![IAC, WILL, x]),
-                    );
-                },
-                Err(_) => {
-                    panic!("Invalid encoding sequence");
-                }
-            }
+            let message = TelnetEvent::Will(TelnetOption::from(x));
+
+            codec.encode(message, &mut output).expect("Invalid encoding sequence");
+
+            assert_eq!(
+                output,
+                BytesMut::from(vec![IAC, WILL, x]),
+            );
         }
     }
 
     #[test]
     fn wont_encode() {
-        let mut codec = TelnetCodec::new(4096);
-
         for x in 0..=255 {
+            let mut codec = TelnetCodec::new(4096);
             let mut output = BytesMut::new();
-            match codec.encode(TelnetEvent::Wont(TelnetOption::from(x)), &mut output) {
-                Ok(()) => {
-                    assert_eq!(
-                        output,
-                        BytesMut::from(vec![IAC, WONT, x]),
-                    );
-                },
-                Err(_) => {
-                    panic!("Invalid encoding sequence");
-                }
-            }
+            let message = TelnetEvent::Wont(TelnetOption::from(x));
+
+            codec.encode(message, &mut output).expect("Invalid encoding sequence");
+
+            assert_eq!(
+                output,
+                BytesMut::from(vec![IAC, WONT, x]),
+            );
         }
     }
 
     #[test]
     fn subnegotiation_naws_encode() {
         let mut codec = TelnetCodec::new(4096);
-
         let mut output = BytesMut::new();
-        match codec.encode(
-            TelnetEvent::Subnegotiation(SubnegotiationType::NegotiateAboutWindowSize(200, 200)),
-            &mut output) {
-            Ok(()) => {
-                assert_eq!(
-                    output,
-                    BytesMut::from(vec![
-                        IAC, SUBNEGOTIATION, NEGOTIATE_ABOUT_WINDOW_SIZE,
-                        0, 200, 0, 200,
-                        IAC, SUBNEGOTIATION_END,
-                    ]),
-                );
-            },
-            Err(_) => {
-                panic!("Invalid encoding sequence");
-            }
-        }
+        let message = TelnetEvent::Subnegotiation(SubnegotiationType::NegotiateAboutWindowSize(200, 200));
+
+        codec.encode(message, &mut output).expect("Invalid encoding sequence");
+
+        assert_eq!(
+            output,
+            BytesMut::from(vec![
+                IAC, SUBNEGOTIATION, NEGOTIATE_ABOUT_WINDOW_SIZE,
+                0, 200, 0, 200,
+                IAC, SUBNEGOTIATION_END,
+            ]),
+        );
     }
 
     #[test]
     fn subnegotiation_encode() {
         let mut codec = TelnetCodec::new(4096);
-
         let mut output = BytesMut::new();
-        match codec.encode(
-            TelnetEvent::Subnegotiation(SubnegotiationType::Other(
-                TelnetOption::BinaryTransmission,
-                vec![1, 2, 3, 4, 5, 6],
-            )),
-            &mut output) {
-            Ok(()) => {
-                assert_eq!(
-                    output,
-                    BytesMut::from(vec![
-                        IAC, SUBNEGOTIATION, BINARY_TRANSMISSION,
-                        1, 2, 3, 4, 5, 6,
-                        IAC, SUBNEGOTIATION_END,
-                    ]),
-                );
-            },
-            Err(_) => {
-                panic!("Invalid encoding sequence");
-            }
-        }
+        let message = TelnetEvent::Subnegotiation(SubnegotiationType::Other(
+            TelnetOption::BinaryTransmission,
+            vec![1, 2, 3, 4, 5, 6],
+        ));
+
+        codec.encode(message, &mut output).expect("Invalid encoding sequence");
+
+        assert_eq!(
+            output,
+            BytesMut::from(vec![
+                IAC, SUBNEGOTIATION, BINARY_TRANSMISSION,
+                1, 2, 3, 4, 5, 6,
+                IAC, SUBNEGOTIATION_END,
+            ]),
+        );
     }
 
     #[test]
     fn message_encode() {
         let mut codec = TelnetCodec::new(4096);
-
         let mut output = BytesMut::new();
-        match codec.encode(
-            TelnetEvent::Message(String::from("Hello world!\r\n")),
-            &mut output) {
-            Ok(()) => {
-                assert_eq!(
-                    output,
-                    BytesMut::from(vec![
-                        0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0x77, 0x6f, 0x72, 0x6c, 0x64, 0x21, 0x0d, 0x0a,
-                    ]),
-                );
-            },
-            Err(_) => {
-                panic!("Invalid encoding sequence");
-            }
-        }
+        let message = TelnetEvent::Message(String::from("Hello world!\r\n"));
+
+        codec.encode(message, &mut output).expect("Invalid encoding sequence");
+
+        assert_eq!(
+            output,
+            BytesMut::from(vec![
+                0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0x77, 0x6f, 0x72, 0x6c, 0x64, 0x21, 0x0d, 0x0a,
+            ]),
+        );
     }
 
     #[test]
     fn message_encode_cr() {
         let mut codec = TelnetCodec::new(4096);
-
         let mut output = BytesMut::new();
-        match codec.encode(
-            TelnetEvent::Message(String::from("Hello world!\r")),
-            &mut output) {
-            Ok(()) => {
-                assert_eq!(
-                    output,
-                    BytesMut::from(vec![
-                        0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0x77, 0x6f, 0x72, 0x6c, 0x64, 0x21, 0x0d, 0x0a,
-                    ]),
-                );
-            },
-            Err(_) => {
-                panic!("Invalid encoding sequence");
-            }
-        }
+        let message = TelnetEvent::Message(String::from("Hello world!\r"));
+
+        codec.encode(message, &mut output).expect("Invalid encoding sequence");
+
+        assert_eq!(
+            output,
+            BytesMut::from(vec![
+                0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0x77, 0x6f, 0x72, 0x6c, 0x64, 0x21, 0x0d, 0x0a,
+            ]),
+        );
     }
 
     #[test]
     fn message_encode_add_newline() {
         let mut codec = TelnetCodec::new(4096);
-
         let mut output = BytesMut::new();
-        match codec.encode(
-            TelnetEvent::Message(String::from("Hello world!")),
-            &mut output) {
-            Ok(()) => {
-                assert_eq!(
-                    output,
-                    BytesMut::from(vec![
-                        0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0x77, 0x6f, 0x72, 0x6c, 0x64, 0x21, 0x0d, 0x0a,
-                    ]),
-                );
-            },
-            Err(_) => {
-                panic!("Invalid encoding sequence");
-            }
-        }
+        let message = TelnetEvent::Message(String::from("Hello world!"));
+
+        codec.encode(message, &mut output).expect("Invalid encoding sequence");
+
+        assert_eq!(
+            output,
+            BytesMut::from(vec![
+                0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0x77, 0x6f, 0x72, 0x6c, 0x64, 0x21, 0x0d, 0x0a,
+            ]),
+        );
     }
 
     #[test]
@@ -502,6 +468,4 @@ mod tests {
             ],
         );
     }
-
-
 }

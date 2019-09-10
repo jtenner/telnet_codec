@@ -1,5 +1,6 @@
-use crate::option::{ TelnetOption };
-use crate::subnegotiation::{ SubnegotiationType };
+use crate::option::*;
+use crate::command::*;
+use crate::subnegotiation::*;
 
 #[derive(Debug,PartialEq)]
 pub enum TelnetEvent {
@@ -13,4 +14,21 @@ pub enum TelnetEvent {
   EraseCharacter,
   EraseLine,
   Nop,
+}
+
+impl Into<u8> for TelnetEvent {
+  fn into(self) -> u8 {
+    match self {
+      TelnetEvent::Do(_) => DO,
+      TelnetEvent::Dont(_) => DONT,
+      TelnetEvent::Will(_) => WILL,
+      TelnetEvent::Wont(_) => WONT,
+      TelnetEvent::Subnegotiation(_) => SUBNEGOTIATION,
+      TelnetEvent::Message(_) => 0x00,
+      TelnetEvent::Character(val) => val,
+      TelnetEvent::EraseCharacter => ERASE_CHARACTER,
+      TelnetEvent::EraseLine => ERASE_LINE,
+      TelnetEvent::Nop => NOP,
+    }
+  }
 }
