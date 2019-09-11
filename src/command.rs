@@ -1,19 +1,4 @@
-pub const SUBNEGOTIATION_END: u8 = 0xF0;
-pub const NOP: u8                = 0xF1;
-pub const DATA_MARK: u8          = 0xF2;
-pub const BREAK: u8              = 0xF3;
-pub const INTERRUPT_PROCESS: u8  = 0xF4;
-pub const ABORT: u8              = 0xF5;
-pub const ARE_YOU_THERE: u8      = 0xF6;
-pub const ERASE_CHARACTER: u8    = 0xF7;
-pub const ERASE_LINE: u8         = 0xF8;
-pub const GO_AHEAD: u8           = 0xF9;
-pub const SUBNEGOTIATION: u8     = 0xFA;
-pub const WILL: u8               = 0xFB;
-pub const WONT: u8               = 0xFC;
-pub const DO: u8                 = 0xFD;
-pub const DONT: u8               = 0xFE;
-pub const IAC: u8                = 0xFF;
+use crate::consts::*;
 
 #[derive(PartialEq, Debug)]
 pub enum TelnetCommand {

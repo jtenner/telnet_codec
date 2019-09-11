@@ -1,42 +1,5 @@
 use std::convert::From;
-
-pub const BINARY_TRANSMISSION: u8                = 0x0 ;
-pub const ECHO: u8                               = 0x1 ;
-pub const RECONNECTION: u8                       = 0x2 ;
-pub const SUPPRESS_GO_AHEAD: u8                  = 0x3 ;
-pub const APPROX_MESSAGE_SIZE_NEGOTIATION: u8    = 0x4 ;
-pub const STATUS: u8                             = 0x5 ;
-pub const TIMING_MARK: u8                        = 0x6 ;
-pub const REMOTE_CONTROLLED_TRANS_AND_ECHO: u8   = 0x7 ;
-pub const OUTPUT_LINE_WIDTH: u8                  = 0x8 ;
-pub const OUTPUT_PAGE_SIZE: u8                   = 0x9 ;
-pub const OUTPUT_CARRIAGE_RETURN_DISPOSITION: u8 = 0xA ;
-pub const OUTPUT_HORIZONTAL_TAB_STOPS: u8        = 0xB ;
-pub const OUTPUT_HORIZONTAL_TAB_DISPOSITION: u8  = 0xC ;
-pub const OUTPUT_FORM_FEED_DISPOSITION: u8       = 0xD ;
-pub const OUTPUT_VERTICAL_TAB_STOPS: u8          = 0xE ;
-pub const OUTPUT_VERTICAL_TAB_DISPOSITION: u8    = 0xF ;
-pub const OUTPUT_LINE_FEED_DISPOSITION: u8       = 0x10;
-pub const EXTENDED_ASCII: u8                     = 0x11;
-pub const LOGOUT: u8                             = 0x12;
-pub const BYTE_MACRO: u8                         = 0x13;
-pub const DATAENTRYTERMINAL: u8                  = 0x14;
-pub const SUPDUP: u8                             = 0x15;
-pub const SUPDUP_OUTPUT: u8                      = 0x16;
-pub const SEND_LOCATION: u8                      = 0x17;
-pub const TERMINAL_TYPE: u8                      = 0x18;
-pub const END_OF_RECORD: u8                      = 0x19;
-pub const TACACS_USER_IDENTIFICATION: u8         = 0x1A;
-pub const OUTPUT_MARKING: u8                     = 0x1B;
-pub const TERMINAL_LOCATION_NUMBER: u8           = 0x1C;
-pub const TELNET_3270_REGIME: u8                 = 0x1D;
-pub const X3PAD: u8                              = 0x1E;
-pub const NEGOTIATE_ABOUT_WINDOW_SIZE: u8        = 0x1F;
-pub const TERMINAL_SPEED: u8                     = 0x20;
-pub const REMOTE_FLOW_CONTROL: u8                = 0x21;
-pub const LINEMODE: u8                           = 0x22;
-pub const X_DISPLAY_LOCATION: u8                 = 0x23;
-pub const EXTENDED_OPTIONS_LIST: u8              = 0xFF;
+use crate::consts::*;
 
 #[derive(PartialEq, Debug)]
 pub enum TelnetOption {

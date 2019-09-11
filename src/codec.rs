@@ -1,10 +1,9 @@
 use tokio::codec::{ Decoder, Encoder };
 use bytes::{ BufMut, BytesMut };
 use crate::event::*;
-use crate::option::*;
-use crate::command::*;
 use crate::subnegotiation::*;
 use crate::error::*;
+use crate::consts::*;
 use std::mem;
 
 pub struct TelnetCodec {

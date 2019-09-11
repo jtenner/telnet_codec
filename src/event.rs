@@ -1,5 +1,5 @@
 use crate::option::*;
-use crate::command::*;
+use crate::consts::*;
 use crate::subnegotiation::*;
 
 #[derive(Debug,PartialEq)]

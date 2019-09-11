@@ -4,6 +4,7 @@ pub mod event;
 pub mod codec;
 pub mod subnegotiation;
 pub mod error;
+pub mod consts;
 
 #[cfg(test)]
 mod tests {
@@ -11,17 +12,17 @@ mod tests {
     use bytes::{ BytesMut };
     use crate::codec::*;
     use crate::event::*;
-    use crate::command::*;
     use crate::option::*;
     use crate::subnegotiation::*;
     use crate::error::*;
+    use crate::consts::*;
 
     fn consume(codec: &mut TelnetCodec, bytes: &mut BytesMut) -> Vec<Result<Option<TelnetEvent>, TelnetError>> {
         let mut result = Vec::new();
         loop {
             match codec.decode(bytes) {
-                Ok(None) => { break; }
-                output => result.push(output)
+                Ok(None) => { break; },
+                output => result.push(output),
             }
         }
         return result;
@@ -49,7 +50,7 @@ mod tests {
         assert_eq!(
             result,
             vec![
-                Ok(Some(TelnetEvent::Message(String::from("Hello world"))))
+                Ok(Some(TelnetEvent::Message(String::from("Hello world")))),
             ],
         );
     }
@@ -82,7 +83,7 @@ mod tests {
         assert_eq!(
             result,
             vec![
-                Ok(Some(TelnetEvent::Message(String::from("Hello world"))))
+                Ok(Some(TelnetEvent::Message(String::from("Hello world")))),
             ],
         );
     }
@@ -98,7 +99,7 @@ mod tests {
             assert_eq!(
                 result,
                 vec![
-                    Ok(Some(TelnetEvent::Do(TelnetOption::from(x))))
+                    Ok(Some(TelnetEvent::Do(TelnetOption::from(x)))),
                 ],
             );
         }
@@ -134,7 +135,7 @@ mod tests {
             assert_eq!(
                 result,
                 vec![
-                    Ok(Some(TelnetEvent::Will(TelnetOption::from(x))))
+                    Ok(Some(TelnetEvent::Will(TelnetOption::from(x)))),
                 ],
             );
         }
@@ -152,7 +153,7 @@ mod tests {
             assert_eq!(
                 result,
                 vec![
-                    Ok(Some(TelnetEvent::Wont(TelnetOption::from(x))))
+                    Ok(Some(TelnetEvent::Wont(TelnetOption::from(x)))),
                 ],
             );
         }
